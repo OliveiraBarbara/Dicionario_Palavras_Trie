@@ -23,7 +23,6 @@ typedef struct lista_sinonimo{
 typedef struct arvore{
 	char palavra[MAX];
 	char idioma[3];
-	char caracter;
 	int folha; /*1=folha*/
 	struct lista_sinonimo *primeiro_conceito;
 	struct arvore *filho[alfa_size];
@@ -43,58 +42,13 @@ lista_sinonimo *aloca_sinonimo(char *s){
 	return nova;
 }
 
-/*void insere(arvore *trie, char *str, char *id, char *sin){
-	lista_sinonimo *nova, *aux;
-	arvore* novo = NULL;
-	int i=0, len, ascii;
-
-	len = strlen(str);
-	if(len-1 != 0){
-		ascii = str[i]-97;
-		if(trie->filho[ascii] == NULL){
-			novo = inicializa(str[i]);
-			trie->filho[ascii] = novo;
-		}
-
-		str++;
-		insere(trie->filho[ascii], str, id, sin);
-	}else{
-		trie->folha = 1;
-		strcpy(trie->palavra, str);
-		strcpy(trie->idioma, id);
-		aux = aloca_sinonimo(sin);
-		aux->prox_sin = trie->primeiro_conceito;
-		trie->primeiro_conceito = aux;
-	}
-	if(trie->folha == 0){
-		
-	}else if((strcmp(str, trie->palavra) == 0) && trie->folha == 1){
-		if(strcmp(sin, (trie)->primeiro_conceito->sinonimo) < 0){ 
-			nova = aloca_sinonimo(sin);
-			nova->prox_sin = trie->primeiro_conceito;
-			trie->primeiro_conceito = nova;
-		}else{ 
-			aux = trie->primeiro_conceito;
-			
-			while(aux->prox_sin != NULL && (strcmp(sin, trie->primeiro_conceito->sinonimo) > 0))
-				aux = aux->prox_sin;
-			
-			nova = aloca_sinonimo(sin);
-			nova->prox_sin = aux->prox_sin;
-			aux->prox_sin = nova;
-		}
-		printf("aqui\n");
-	}
-}*/
-
-arvore* aloca(char data) {
+arvore* aloca() {
 	int i;
 	arvore* nova = (arvore *) malloc (sizeof (arvore)); /*aloco um espaço na memória*/
 	if(nova != NULL){
 		for (i=0; i<alfa_size; i++)
 			nova->filho[i] = NULL;
 		nova->folha = 0;
-		nova->caracter = data;
 	}else /*se a alocacao nao deu certo, informo na tela*/
 		printf("Erro ao alocar memória\n");
 	
@@ -108,7 +62,7 @@ void insere(arvore* trie, char* str, char *id, char *sin) {
 	for (i=0; str[i] != '\0'; i++) {
 		ascii = str[i] - 97;
 		if (trie->filho[ascii] == NULL)
-			trie->filho[ascii] = aloca(str[i]);
+			trie->filho[ascii] = aloca();
 		trie = trie->filho[ascii];
 	}
 	trie->folha = 1;
@@ -184,36 +138,6 @@ void libera_sinonimo(lista_sinonimo *lst){
 	}
 }
 
-void remover(arvore *trie, char *str){
-	arvore *aux;
-	int ascii, i;
-	
-	if(trie != NULL) {
-		aux = busca(trie, str);
-
-		if(aux->folha == 1){
-			if(filhos(aux) == 0){
-				for(i=0; str[i] != '\0'; i++){
-					ascii = str[i] - 97;
-					if(trie->filho[ascii] != NULL && trie->folha == 0){
-						if(filhos(trie) == 0){
-							free(trie);
-							trie = NULL;
-							printf("entrei\n");
-						}else
-							remover(trie->filho[ascii], str+1);
-					}
-					trie = trie->filho[ascii];
-				}
-			}else{
-				aux->folha = 0;
-				strcpy(aux->palavra, "");
-				strcpy(aux->idioma, "");
-				libera_sinonimo(aux->primeiro_conceito);
-			}
-		}
-	}
-}
 void libera(arvore* trie) {
 	int i;   
 	for(i=0; i<alfa_size; i++){
@@ -223,10 +147,108 @@ void libera(arvore* trie) {
 	free(trie);
 }
 
+void remover(arvore *trie, char *str){
+	arvore *aux = trie;
+	
+	if(trie != NULL){
+		if(*str != '\0'){
+			if(aux->filho[*str-97] != NULL){
+				if(filhos(aux) != 0){
+					if(aux->folha == 0){
+						remover(aux->filho[*str-97], str+1);
+						printf("aqui2\n");
+					}else{
+						aux->filho[*str-97] = NULL;
+						printf("aqui1\n");
+					}
+				}else{
+					free(aux);
+					aux = NULL;
+					printf("aqui4\n");
+				}
+			}
+		}else{
+			if(aux->folha == 1){
+				if(filhos(aux) == 0){
+					aux->folha = 0;
+					libera_sinonimo(aux->primeiro_conceito);
+					aux->primeiro_conceito = NULL;
+					free(aux->filho[*str-97]);
+					aux->filho[*str-97] = NULL;
+					printf("aqui\n");
+				}else{
+					aux->folha = 0;
+					strcpy(aux->palavra, "");
+					strcpy(aux->idioma, "");
+					libera_sinonimo(aux->primeiro_conceito);
+					printf("aqui3\n");
+				}
+			}
+		}
+	}
+}
+
+void remove_sinonimo(arvore *trie, char *str1, char *str2){
+	arvore *q, *aux;
+	lista_sinonimo *p, *s;
+	s = NULL;	
+	
+	if(trie != NULL){
+		aux = busca(trie, str1);
+		
+		p = aux->primeiro_conceito;
+		q = aux;
+		while (p != NULL && (strcmp(p->sinonimo, str2) != 0)){ /*procuro o sinonimo na lista de sinonimo*/
+			s = p;
+			p = p->prox_sin;
+		}
+		if (p != NULL){ /*se ele estiver na lista eu verifico se ele é o primeiro sinonimo, se for o primeiro eu faco a primeira posicao da lista de sinonimo receber o sinonimo seguinte do que eu vou remover, e se ele nao for o primeiro, faco o sinonimo anterior receber o sinonimo seguinte do que vou remover*/
+			if(s != NULL)
+				s->prox_sin = p->prox_sin;
+			else
+				aux->primeiro_conceito = p->prox_sin;
+				
+			free(p); /*removo o sinonimo*/
+		}
+		if(q != NULL && q->primeiro_conceito == NULL){ /*verifico se a palavra ficou sem sinonimo, se ficou eu chamo a funcao para remover ela*/
+			remover(trie, str1);
+			printf("entrei\n");
+		}
+	}
+}
+
+/*void lista_pre(arvore *trie, char *id, char *pre){
+	arvore* aux = trie;
+	lista_sinonimo *q;
+	int i, ascii;
+	
+	for(i=0; pre[i] != '\0'; i++){
+		ascii = pre[i] - 97;
+		if(aux->filho[ascii] == NULL)
+			printf("\n");
+		aux = aux->filho[ascii];
+	}
+	
+	if(aux != NULL && filhos(aux) == 1){
+		for(i=0; i<alfa_size; i++){
+			aux = aux->filho[i];
+			if(filhos(aux->filho[i]) == 1){
+				if(strcmp(id, aux->idioma) == 0){
+					printf("%s : ", aux->palavra);
+					printf("%s", aux->primeiro_conceito->sinonimo);
+					for(q = aux->primeiro_conceito->prox_sin; q != NULL; q = q->prox_sin)
+						printf(", %s", q->sinonimo);
+					printf("\n");
+				}
+			}
+		}
+	}
+}*/
+
 int main(void) {
     int i, j, k; /*Variáveis contadoras usadas na separação da string para vetor de palavras.*/
-	char acao[MAX], string[MAX], str[3][MAX], str1[MAX], str2[MAX], id1[3], id2[3];/*Acao: Variavel utilizada para ler qual operacao realizarei no processo // String: utilizada para ler as palavras que vai remover ou listar // Vetor Str: utilizada para separa a string de palavras com espaço, cada uma em uma posição do vetor // Str1 e Str2: usadas para ler as palavras que vou inserir ou buscar // Id1 e Id2: usadas para ler o idioma. // Vetor id: usado para armazenar o idioma e as letras no comando listar*/
-    arvore* trie = aloca('\0');
+	char acao[MAX], string[MAX], str[3][MAX], str1[MAX], str2[MAX], id1[3], id2[3], pre[MAX];/*Acao: Variavel utilizada para ler qual operacao realizarei no processo // String: utilizada para ler as palavras que vai remover ou listar // Vetor Str: utilizada para separa a string de palavras com espaço, cada uma em uma posição do vetor // Str1 e Str2: usadas para ler as palavras que vou inserir ou buscar // Id1 e Id2: usadas para ler o idioma. // Vetor id: usado para armazenar o idioma e as letras no comando listar*/
+    arvore* trie = aloca();
     
     scanf("%s", acao); /*leio o qual opção devo realizar*/
 
@@ -273,9 +295,17 @@ int main(void) {
 				remover(trie, str[1]);
 			}else{
 				str[2][k] = '\0'; /*insiro o caracter nulo para saber onde a palavra acaba*/
-				/*remove_sinonimo(trie, str[1], str[2]);
-				remove_sinonimo(trie, str[2], str[1]);*/
+				remove_sinonimo(trie, str[1], str[2]);
+				remove_sinonimo(trie, str[2], str[1]);
 			}
+		}
+		
+		/*Se for o comando lista eu leio o idioma (e letras do intervalo).*/
+		if(strcmp("lista", acao) == 0){
+			scanf("%s", id1);
+			scanf("%s", pre);
+			
+			/*lista_pre(trie, id1, pre);*/
 		}
 			
 		scanf("%s", acao); /*Leio novamente a acao para definir qual a proxima operacao a ser realizada*/
