@@ -11,7 +11,7 @@ Professor: Ronaldo Fiorilo
 #include <string.h>
 
 #define MAX 100
-#define alfa_size 26
+#define alfa_size 26 /*tamanho do alfabeto*/
 
 /*Struct da lista para armazenar os sinonimos*/
 typedef struct lista_sinonimo{

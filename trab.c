@@ -13,7 +13,7 @@ Professor: Ronaldo Fiorilo
 
 int main(void) {
     int i, j, k; /*Variáveis contadoras usadas na separação da string para vetor de palavras.*/
-	char acao[MAX], string[MAX], str[3][MAX], str1[MAX], str2[MAX], id1[3], id2[3], pre[MAX];/*Acao: Variavel utilizada para ler qual operacao realizarei no processo // String: utilizada para ler as palavras que vai remover ou listar // Vetor Str: utilizada para separa a string de palavras com espaço, cada uma em uma posição do vetor // Str1 e Str2: usadas para ler as palavras que vou inserir ou buscar // Id1 e Id2: usadas para ler o idioma. // Vetor id: usado para armazenar o idioma e as letras no comando listar*/
+	char acao[MAX], string[MAX], str[3][MAX], str1[MAX], str2[MAX], id1[3], id2[3], pre[MAX];/*Acao: Variavel utilizada para ler qual operacao realizarei no processo // String: utilizada para ler as palavras que vai remover ou listar // Vetor Str: utilizada para separa a string de palavras com espaço, cada uma em uma posição do vetor // Str1 e Str2: usadas para ler as palavras que vou inserir ou buscar // Id1 e Id2: usadas para ler o idioma. // Vetor id: usado para armazenar o idioma e as letras no comando listar // Pre: variavel que le qual o prefixo que quero procurar as palavras*/
     arvore* trie = aloca();
     
     scanf("%s", acao); /*leio o qual opção devo realizar*/
